@@ -1,6 +1,6 @@
 ---
 name: academic-search
-description: 学术论文垂直搜索。直连 Semantic Scholar、Crossref、PubMed、arXiv、Zenodo 等学术 API（免费层），无外部依赖。支持论文搜索、DOI 查询、引用关系、生物医学文献、预印本、数据集。
+description: 学术论文垂直搜索。直连 Semantic Scholar、Crossref、PubMed、arXiv、Zenodo、秘塔搜索等 6 个学术 API。默认免费层，可选配 API Key 提速。支持论文搜索、DOI 查询、引用关系、生物医学文献、预印本、数据集、中文学术搜索。
 version: 2.0.0
 author: 阿星
 ---
@@ -22,26 +22,65 @@ author: 阿星
   返回 JSON：标题 / 作者 / DOI / 引用次数
 ```
 
-## 首次使用：询问 Semantic Scholar API Key
+## ⚡ 首次使用：API Key 配置（MUST DO）
 
-当用户首次触发本 Skill 时，**主动询问**：
+**当用户安装本 Skill 后首次触发学术搜索时，立即执行以下流程：**
 
-> "你有 Semantic Scholar API Key 吗？没有也能用（100次/5分钟免费），有 Key 的话体验更好。免费申请：https://www.semanticscholar.org/product/api#api-key-form"
+---
 
-如果用户提供 Key，写入 `.env` 文件：
+### Step 1：主动询问
+
+> "为了给你最好的学术搜索体验，我先确认一下——
+>
+> 1. 你有 **Semantic Scholar API Key** 吗？
+>    - 没有也能用：100次/5分钟免费
+>    - 有 Key：速率大幅提升，不会限流
+>    - 免费申请：https://www.semanticscholar.org/product/api#api-key-form
+>
+> 2. 你有 **秘塔学术 API Key** 吗？
+>    - 没有的话：中文搜索功能暂时不可用
+>    - 有 Key：解锁中文学术/技术实时搜索
+>    - 申请方式：https://metaso.cn
+>
+> 直接告诉我你有哪个（或都没有），我帮你配置。后期随时可以补配。"
+
+### Step 2：根据用户答复写入 .env
+
+| 用户答复 | 操作 |
+|----------|------|
+| "有 S2 Key: xxx" | 写入 `SEMANTIC_SCHOLAR_API_KEY=xxx` |
+| "有秘塔 Key: xxx" | 写入 `METASO_API_KEY=xxx` |
+| "两个都有" | 写入两个 |
+| "都没有" | 跳过，使用免费层（Metaso 不可用） |
+
+**写入路径**：`<skill_dir>/.env`
+
+### Step 3：确认配置
+
+配置完成后告知用户：
+
 ```
-SEMANTIC_SCHOLAR_API_KEY=<用户提供的key>
+✅ 配置完成！
+
+Semantic Scholar: [有 Key ✓ / 免费层 100req/5min]
+秘塔搜索:       [有 Key ✓ / 未配置 ✗]
+
+后期想补配 Key，直接编辑 .env 文件：
+  <skill_dir>/.env
 ```
 
-**速率对比**：
+---
 
-| | 无 Key | 有 Key |
-|------|:--:|:--:|
-| 速率 | 100req/5min | 大幅提升 |
-| 论文搜索 | ✅ | ✅ |
-| 稳定性 | 可能被限流 | 更稳定 |
+### 速率对比
 
-其余 API（Crossref / PubMed / arXiv / Zenodo）均无需 Key，开箱即用。
+| 源 | 无 Key | 有 Key |
+|------|------|------|
+| Semantic Scholar | 100req/5min（可能限流） | 高速，稳定 |
+| 秘塔搜索 | ❌ 不可用 | ✅ 中文学术实时搜索 |
+| Crossref | ✅ 免费无限 | — |
+| PubMed | ✅ 3req/s | 10req/s |
+| arXiv | ✅ 免费无限 | — |
+| Zenodo | ✅ 免费无限 | — |
 
 ## 触发条件
 
