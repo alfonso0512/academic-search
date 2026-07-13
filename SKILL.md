@@ -33,8 +33,8 @@ author: 阿星
 >    - 配 Key 后速率大幅提升，稳定高速
 >    - 免费申请：https://www.semanticscholar.org/product/api#api-key-form
 >
-> 2. **秘塔学术 API Key**（必需）
->    - 不配的话中文搜索功能暂不可用
+> 2. **秘塔学术 API Key**（推荐）
+>    - 不配也能用，但中文搜索功能暂不可用
 >    - 配 Key 后解锁中文学术/技术实时搜索
 >
 > 你有哪个 Key？直接告诉我，我帮你配置。"
@@ -46,7 +46,7 @@ author: 阿星
 | "有 S2 Key: xxx" | 写入 `SEMANTIC_SCHOLAR_API_KEY=xxx` |
 | "有秘塔 Key: xxx" | 写入 `METASO_API_KEY=xxx` |
 | "两个都有" | 写入两个 |
-| "都没有" | 使用 S2 免费层，秘塔暂不可用（可后期补配） |
+| "都没有" | 使用 S2 免费层，秘塔暂不可用（后期随时补配） |
 
 ### Step 3：确认
 
@@ -54,7 +54,7 @@ author: 阿星
 ✅ 配置完成！
 
 Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
-秘塔搜索:       [配 Key ✓  中文可用] / [未配置 ✗  仅英文]
+秘塔搜索:       [配 Key ✓  中文可用] / [未配置 ✗  仅英文（可后期补配）]
 
 后期补配 Key：编辑 <skill_dir>/.env
 ```

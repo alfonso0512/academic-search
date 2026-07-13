@@ -26,7 +26,7 @@
 | **PubMed** | 生物医学文献 + MeSH | 无需 |
 | **arXiv** | 最新预印本 | 无需 |
 | **Zenodo** | 研究数据集 | 无需 |
-| **秘塔搜索** | 中文学术/技术实时搜索 | **必配** |
+| **秘塔搜索** | 中文学术/技术实时搜索 | 推荐配 |
 
 > 💡 **配 Key 体验最佳**：Semantic Scholar 免费层 100 次/5 分钟（易限流），秘塔搜索需 Key 才能启用。建议申请：[S2 Key](https://www.semanticscholar.org/product/api#api-key-form) | 秘塔 Key（联系官方）。
 
