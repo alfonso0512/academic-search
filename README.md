@@ -1,48 +1,51 @@
 # Academic Search — 学术论文搜索 Skill
 
-> 直连学术 API 免费层，零外部依赖。Semantic Scholar + Crossref + PubMed + arXiv + Zenodo。
+> 6 大权威学术数据源，中英双路并行搜索。免费可用，配 Key 体验更佳。
 
 ## 设计思想
 
 ```
 用户 "固态电池最新论文"
         │
-        ▼
-  直连 Semantic Scholar API（免费层）
-        │
-        ▼
-  返回结构化 JSON：标题 / 作者 / DOI / 引用次数
+   ├──→ Semantic Scholar（英文学术论文）
+   │      └─ 期刊 / DOI / 引用次数
+   │
+   └──→ 秘塔搜索（中文学术+产业）
+          └─ 中文论文 / 行业报告 / 技术博客
+                 │
+                 ▼
+            合并呈现：中英双路
 ```
 
-不依赖 anysearch、不依赖 API Key。所有 API 均有免费层。
+## 6 大搜索数据源
 
-## 6 个搜索能力
+| 源 | 能力 | Key |
+|------|------|:--:|
+| **Semantic Scholar** | 2 亿+ 论文语义搜索 | 推荐配 |
+| **Crossref** | DOI 元数据 + 引用关系 | 无需 |
+| **PubMed** | 生物医学文献 + MeSH | 无需 |
+| **arXiv** | 最新预印本 | 无需 |
+| **Zenodo** | 研究数据集 | 无需 |
+| **秘塔搜索** | 中文学术/技术实时搜索 | **必配** |
 
-| 子域 | API | 用途 |
-|------|-----|------|
-| **papers** | Semantic Scholar | 2 亿+ 论文语义搜索 |
-| **citation** | Crossref | DOI 元数据 + 引用关系 |
-| **biomedical** | PubMed + Europe PMC | 生物医学文献 |
-| **preprint** | arXiv | 最新预印本 |
-| **dataset** | Zenodo | 研究数据集 |
-| **metaso** | 秘塔搜索 | 中文学术/技术实时搜索 |
+> 💡 **配 Key 体验最佳**：Semantic Scholar 免费层 100 次/5 分钟（易限流），秘塔搜索需 Key 才能启用。建议申请：[S2 Key](https://www.semanticscholar.org/product/api#api-key-form) | 秘塔 Key（联系官方）。
 
 ## 安装
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/academic-search.git ~/.config/opencode/skills/academic-search
+git clone https://github.com/alfonso0512/academic-search.git ~/.config/opencode/skills/academic-search
 ```
 
-零配置、零 API Key。开箱即用。
+首次使用时会引导你配置 Key，也可以直接编辑 `.env` 文件。
 
 ## 使用示例
 
 ```
-"固态电池最新论文"          → Semantic Scholar
-"这篇 DOI 的详细信息"        → Crossref
-"PubMed 搜 mRNA 疫苗"        → PubMed
-"arXiv 最新 LLM 预印本"      → arXiv
-"气候变化数据集"             → Zenodo
+"固态电池最新论文"           → S2 英文 + 秘塔中文（双路并行）
+"这篇 DOI 的详细信息"         → Crossref
+"PubMed 搜 mRNA 疫苗"         → PubMed
+"arXiv 最新 LLM 预印本"       → arXiv
+"气候变化数据集"              → Zenodo
 ```
 
 ## 文件结构
@@ -51,9 +54,11 @@ git clone https://github.com/YOUR_USERNAME/academic-search.git ~/.config/opencod
 academic-search/
 ├── README.md
 ├── SKILL.md
+├── .env.example
 ├── references/
-│   └── apis.md      # 6 个 API 的完整文档
-└── .gitignore
+│   └── apis.md              # 7 个 API 完整文档
+└── scripts/
+    └── academic_search.py   # 统一 CLI（6 源后端）
 ```
 
 ## 许可

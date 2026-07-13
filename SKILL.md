@@ -1,75 +1,63 @@
 ---
 name: academic-search
-description: 学术论文垂直搜索。直连 Semantic Scholar、Crossref、PubMed、arXiv、Zenodo、秘塔搜索等 6 个学术 API。默认免费层，可选配 API Key 提速。支持论文搜索、DOI 查询、引用关系、生物医学文献、预印本、数据集、中文学术搜索。
+description: 学术论文垂直搜索。6 大权威数据源（Semantic Scholar / Crossref / PubMed / arXiv / Zenodo / 秘塔搜索），中英双路并行。免费可用，配 S2+秘塔 Key 体验最佳。
 version: 2.0.0
 author: 阿星
 ---
 
 ## 设计思想
 
-直连学术数据库 API 免费层，零依赖：
+6 大权威学术数据源，中英双路并行：
 
 ```
-用户 "固态电池最新论文"
+用户 "高温热泵论文"
         │
-        ▼
-  识别 → Semantic Scholar API
-        │
-        ▼
-  curl/wget → api.semanticscholar.org
-        │
-        ▼
-  返回 JSON：标题 / 作者 / DOI / 引用次数
+   ├──→ 🔬 Semantic Scholar     → 英文论文 + DOI + 引用次数
+   │
+   └──→ 🇨🇳 秘塔搜索            → 中文学术 + 产业报告
+                 │
+                 ▼
+            合并呈现：双语学术搜索
 ```
 
-## ⚡ 首次使用：API Key 配置（MUST DO）
+## ⚡ 首次使用：配置 API Key（获得最佳体验）
 
-**当用户安装本 Skill 后首次触发学术搜索时，立即执行以下流程：**
+**当用户安装本 Skill 后首次触发学术搜索时，执行以下流程：**
 
----
+### Step 1：引导配置
 
-### Step 1：主动询问
-
-> "为了给你最好的学术搜索体验，我先确认一下——
+> "为了给你最好的学术搜索体验，建议配置两个 Key——
 >
-> 1. 你有 **Semantic Scholar API Key** 吗？
->    - 没有也能用：100次/5分钟免费
->    - 有 Key：速率大幅提升，不会限流
+> 1. **Semantic Scholar API Key**（推荐）
+>    - 不配也能用，但免费层仅 100 次/5 分钟，容易限流
+>    - 配 Key 后速率大幅提升，稳定高速
 >    - 免费申请：https://www.semanticscholar.org/product/api#api-key-form
 >
-> 2. 你有 **秘塔学术 API Key** 吗？
->    - 没有的话：中文搜索功能暂时不可用
->    - 有 Key：解锁中文学术/技术实时搜索
->    - 申请方式：https://metaso.cn
+> 2. **秘塔学术 API Key**（必需）
+>    - 不配的话中文搜索功能暂不可用
+>    - 配 Key 后解锁中文学术/技术实时搜索
 >
-> 直接告诉我你有哪个（或都没有），我帮你配置。后期随时可以补配。"
+> 你有哪个 Key？直接告诉我，我帮你配置。"
 
-### Step 2：根据用户答复写入 .env
+### Step 2：写入 .env
 
 | 用户答复 | 操作 |
 |----------|------|
 | "有 S2 Key: xxx" | 写入 `SEMANTIC_SCHOLAR_API_KEY=xxx` |
 | "有秘塔 Key: xxx" | 写入 `METASO_API_KEY=xxx` |
 | "两个都有" | 写入两个 |
-| "都没有" | 跳过，使用免费层（Metaso 不可用） |
+| "都没有" | 使用 S2 免费层，秘塔暂不可用（可后期补配） |
 
-**写入路径**：`<skill_dir>/.env`
-
-### Step 3：确认配置
-
-配置完成后告知用户：
+### Step 3：确认
 
 ```
 ✅ 配置完成！
 
-Semantic Scholar: [有 Key ✓ / 免费层 100req/5min]
-秘塔搜索:       [有 Key ✓ / 未配置 ✗]
+Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
+秘塔搜索:       [配 Key ✓  中文可用] / [未配置 ✗  仅英文]
 
-后期想补配 Key，直接编辑 .env 文件：
-  <skill_dir>/.env
+后期补配 Key：编辑 <skill_dir>/.env
 ```
-
----
 
 ### 速率对比
 
