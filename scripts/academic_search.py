@@ -12,6 +12,7 @@ Usage:
 import argparse
 import io
 import json
+import os
 import ssl
 import sys
 import urllib.parse
@@ -30,10 +31,32 @@ SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
+# Load API keys from .env file
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SKILL_DIR = os.path.dirname(SCRIPT_DIR)
+for env_path in [os.path.join(SCRIPT_DIR, ".env"), os.path.join(SKILL_DIR, ".env")]:
+    if os.path.isfile(env_path):
+        with open(env_path, "r", encoding="utf-8-sig") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and value and key not in os.environ:
+                    os.environ[key] = value
 
-def fetch_json(url: str, timeout: int = 15) -> dict:
+S2_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "")
+METASO_API_KEY = os.environ.get("METASO_API_KEY", "")
+
+
+def fetch_json(url: str, timeout: int = 15, headers: Optional[dict] = None) -> dict:
     """Fetch URL and parse JSON response."""
-    req = urllib.request.Request(url, headers={"User-Agent": "AcademicSearch/2.0"})
+    req_headers = {"User-Agent": "AcademicSearch/2.0"}
+    if headers:
+        req_headers.update(headers)
+    req = urllib.request.Request(url, headers=req_headers)
     with urllib.request.urlopen(req, timeout=timeout, context=SSL_CONTEXT) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
@@ -48,14 +71,17 @@ def fetch_xml(url: str, timeout: int = 15) -> str:
 # ─── Search Functions ───────────────────────────────────────────
 
 def search_semantic_scholar(query: str, limit: int = 10) -> list[dict]:
-    """Search papers via Semantic Scholar API (free tier: 100req/5min)."""
+    """Search papers via Semantic Scholar API."""
     params = urllib.parse.urlencode({
         "query": query,
         "limit": limit,
         "fields": "title,authors,year,citationCount,journal,externalIds"
     })
     url = f"https://api.semanticscholar.org/graph/v1/paper/search?{params}"
-    data = fetch_json(url)
+    headers = {}
+    if S2_API_KEY:
+        headers["x-api-key"] = S2_API_KEY
+    data = fetch_json(url, headers=headers)
     results = []
     for paper in data.get("data", []):
         authors = ", ".join(a.get("name", "") for a in paper.get("authors", [])[:3])
@@ -238,6 +264,31 @@ def search_zenodo(query: str, limit: int = 10) -> list[dict]:
     return results
 
 
+def search_metaso(query: str, limit: int = 10) -> list[dict]:
+    """Search via Metaso (秘塔搜索) - Chinese academic/tech search."""
+    if not METASO_API_KEY:
+        raise RuntimeError("METASO_API_KEY not set. Add it to .env file.")
+    url = "https://metaso.cn/api/v1/search"
+    payload = json.dumps({"q": query, "n": limit}).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {METASO_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=20, context=SSL_CONTEXT) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    results = []
+    for page in data.get("webpages", []):
+        results.append({
+            "title": page.get("title", "N/A"),
+            "url": page.get("link", page.get("url", "")),
+            "snippet": page.get("snippet", ""),
+            "date": page.get("date", ""),
+            "authors": page.get("authors", ""),
+        })
+    return results
+
+
 # ─── Output ─────────────────────────────────────────────────────
 
 SOURCES = {
@@ -246,6 +297,7 @@ SOURCES = {
     "biomedical": search_pubmed,
     "preprint": search_arxiv,
     "dataset": search_zenodo,
+    "metaso": search_metaso,
 }
 
 
@@ -272,6 +324,10 @@ def format_results(source: str, results: list[dict]) -> str:
             lines.append(f"- arXiv: [{r['arxiv_id']}](https://arxiv.org/abs/{r['arxiv_id']})")
         if r.get("type"):
             lines.append(f"- 类型: {r['type']}")
+        if r.get("url"):
+            lines.append(f"- 链接: {r['url']}")
+        if r.get("snippet"):
+            lines.append(f"- 摘要: {r['snippet'][:200]}...")
         lines.append("")
     return "\n".join(lines)
 
@@ -282,11 +338,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 数据源:
-  papers      Semantic Scholar (2亿+论文)  [限100req/5min]
+  papers      Semantic Scholar (2亿+论文)  [100req/5min]
   citation    Crossref (DOI查询/引用关系)   [无限]
-  biomedical  PubMed (生物医学文献)         [限3req/s]
+  biomedical  PubMed (生物医学文献)         [3req/s]
   preprint    arXiv (预印本)               [无限]
   dataset     Zenodo (研究数据集)           [无限]
+  metaso      秘塔搜索 (中文学术/技术)       [需API Key]
 
 示例:
   python academic_search.py papers "solid state battery" --limit 5
@@ -294,6 +351,7 @@ def main():
   python academic_search.py biomedical "mRNA vaccine cancer"
   python academic_search.py preprint "large language model reasoning"
   python academic_search.py dataset "global temperature"
+  python academic_search.py metaso "固态电池 最新进展" --limit 5
         """,
     )
     parser.add_argument("source", choices=list(SOURCES.keys()),

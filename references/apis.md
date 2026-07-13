@@ -12,6 +12,7 @@
 | 4 | Europe PMC | `www.ebi.ac.uk/europepmc` | 无限 | 无需 | 生物医学文献（欧洲） |
 | 5 | arXiv | `export.arxiv.org` | 无限 | 无需 | 预印本搜索 |
 | 6 | Zenodo | `zenodo.org/api` | 无限 | 无需 | 研究数据集 |
+| 7 | 秘塔搜索 | `metaso.cn` | 需要 Key | **必填** | 中文学术/技术实时搜索 |
 
 ---
 
@@ -221,4 +222,60 @@ GET https://zenodo.org/api/records?q={keywords}&size={n}&sort=mostrecent
 **搜索示例**：
 ```bash
 curl "https://zenodo.org/api/records?q=climate+temperature+dataset&size=5&sort=mostrecent"
+```
+
+---
+
+## 7. 秘塔搜索 API
+
+**端点**：`POST https://metaso.cn/api/v1/search`
+
+**速率限制**：按 credits 计费
+
+**认证**：需要 API Key（Bearer Token）
+
+**请求格式**：
+```
+POST https://metaso.cn/api/v1/search
+Authorization: Bearer {api_key}
+Content-Type: application/json
+
+{"q": "查询关键词", "n": 返回数量}
+```
+
+**参数**：
+
+| 参数 | 必需 | 说明 | 示例 |
+|------|:--:|------|------|
+| `q` | ✅ | 搜索关键词 | `固态电池 最新进展` |
+| `n` | ❌ | 返回数量 | `5` |
+
+**响应格式**：
+```json
+{
+  "credits": 3,
+  "webpages": [
+    {
+      "title": "论文/文章标题",
+      "link": "https://...",
+      "snippet": "内容摘要...",
+      "date": "2025年01月01日",
+      "authors": "作者名",
+      "score": 0.95
+    }
+  ]
+}
+```
+
+**特点**：
+- 中文内容覆盖极好（学术论文、行业报告、技术博客、B站视频）
+- 实时搜索（非静态索引）
+- 适合中文技术调研和产业动态追踪
+
+**搜索示例**：
+```bash
+curl -X POST "https://metaso.cn/api/v1/search" \
+  -H "Authorization: Bearer $METASO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q":"固态电池 2025 产业进展","n":5}'
 ```

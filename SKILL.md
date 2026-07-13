@@ -22,14 +22,26 @@ author: 阿星
   返回 JSON：标题 / 作者 / DOI / 引用次数
 ```
 
-**与 v1.0 的差异**：
+## 首次使用：询问 Semantic Scholar API Key
 
-| | v1.0（废弃） | v2.0（当前） |
-|------|------|------|
-| 后端 | anysearch 代理 | 直连学术 API |
-| 依赖 | anysearch | **零外部依赖** |
-| 认证 | anysearch Key | 全部免费层（无需任何 Key） |
-| 可控性 | 黑盒代理 | 透明，可调参数 |
+当用户首次触发本 Skill 时，**主动询问**：
+
+> "你有 Semantic Scholar API Key 吗？没有也能用（100次/5分钟免费），有 Key 的话体验更好。免费申请：https://www.semanticscholar.org/product/api#api-key-form"
+
+如果用户提供 Key，写入 `.env` 文件：
+```
+SEMANTIC_SCHOLAR_API_KEY=<用户提供的key>
+```
+
+**速率对比**：
+
+| | 无 Key | 有 Key |
+|------|:--:|:--:|
+| 速率 | 100req/5min | 大幅提升 |
+| 论文搜索 | ✅ | ✅ |
+| 稳定性 | 可能被限流 | 更稳定 |
+
+其余 API（Crossref / PubMed / arXiv / Zenodo）均无需 Key，开箱即用。
 
 ## 触发条件
 
@@ -41,7 +53,7 @@ author: 阿星
 - "arXiv 预印本"、"最新 preprint"
 - "研究数据集"、"dataset"
 
-## 5 个子域 + 对应 API
+## 6 个子域 + 对应 API
 
 | 子域 | API | 端点 | 用途 |
 |------|-----|------|------|
@@ -50,6 +62,7 @@ author: 阿星
 | **biomedical** | PubMed + Europe PMC | `eutils.ncbi.nlm.nih.gov` / `ebi.ac.uk` | 生物医学文献 |
 | **preprint** | arXiv | `export.arxiv.org` | 预印本搜索 |
 | **dataset** | Zenodo | `zenodo.org/api` | 研究数据集 |
+| **metaso** | 秘塔搜索 | `metaso.cn/api/v1/search` | 中文学术/技术实时搜索 |
 
 完整 API 文档见 `references/apis.md`。
 
@@ -102,11 +115,16 @@ curl "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=COVID-19+vac
 curl "http://export.arxiv.org/api/query?search_query=all:large+language+model+reasoning&start=0&max_results=5&sortBy=submittedDate&sortOrder=descending"
 ```
 
-### 数据集搜索（Zenodo）
+### 秘塔搜索（中文学术/技术）
 
 ```bash
-curl "https://zenodo.org/api/records?q=climate+temperature+dataset&size=5"
+curl -X POST "https://metaso.cn/api/v1/search" \
+  -H "Authorization: Bearer $METASO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q":"固态电池 最新进展","n":5}'
 ```
+
+覆盖中文学术论文、行业报告、技术博客、B站视频等实时内容。
 
 ## 输出格式
 

@@ -16,7 +16,7 @@
 
 不依赖 anysearch、不依赖 API Key。所有 API 均有免费层。
 
-## 5 个搜索能力
+## 6 个搜索能力
 
 | 子域 | API | 用途 |
 |------|-----|------|
@@ -25,6 +25,7 @@
 | **biomedical** | PubMed + Europe PMC | 生物医学文献 |
 | **preprint** | arXiv | 最新预印本 |
 | **dataset** | Zenodo | 研究数据集 |
+| **metaso** | 秘塔搜索 | 中文学术/技术实时搜索 |
 
 ## 安装
 
