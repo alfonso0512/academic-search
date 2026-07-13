@@ -301,6 +301,70 @@ SOURCES = {
 }
 
 
+def search_all(query: str, limit: int = 10) -> dict:
+    """Dual search: Semantic Scholar (English) + Metaso (Chinese)."""
+    results = {}
+    # English
+    try:
+        results["papers"] = search_semantic_scholar(query, limit)
+    except Exception as e:
+        results["papers"] = [{"title": f"[S2 Error] {e}", "authors": "", "year": "", "citations": 0, "journal": "", "doi": ""}]
+    # Chinese
+    try:
+        if METASO_API_KEY:
+            results["metaso"] = search_metaso(query, limit)
+        else:
+            results["metaso"] = [{"title": "秘塔搜索未配置 (设置 METASO_API_KEY 解锁中文学术搜索)", "url": "", "snippet": "", "date": "", "authors": ""}]
+    except Exception as e:
+        results["metaso"] = [{"title": f"[Metaso Error] {e}", "url": "", "snippet": "", "date": "", "authors": ""}]
+    return results
+
+
+def format_all_results(query: str, results: dict) -> str:
+    """Format dual-search results."""
+    lines = [f"# 学术搜索: {query}\n"]
+    # English
+    lines.append("## 🔬 英文学术论文 (Semantic Scholar)")
+    en = results.get("papers", [])
+    if en and en[0].get("title", "").startswith("[S2 Error"):
+        lines.append(f"\n⚠️ {en[0]['title']}\n")
+    else:
+        for i, r in enumerate(en, 1):
+            lines.append(f"### {i}. {r.get('title', 'N/A')}")
+            if r.get("authors"):
+                lines.append(f"- 作者: {r['authors']}")
+            if r.get("journal"):
+                lines.append(f"- 来源: {r['journal']} ({r.get('year', '')})")
+            if r.get("doi"):
+                lines.append(f"- DOI: [{r['doi']}](https://doi.org/{r['doi']})")
+            if "citations" in r:
+                lines.append(f"- 引用次数: {r['citations']}")
+            lines.append("")
+    # Chinese
+    lines.append("## 🇨🇳 中文学术结果 (秘塔搜索)")
+    zh = results.get("metaso", [])
+    if zh and "未配置" in zh[0].get("title", ""):
+        lines.append(f"\n⚠️ {zh[0]['title']}\n")
+    elif zh and zh[0].get("title", "").startswith("[Metaso Error"):
+        lines.append(f"\n⚠️ {zh[0]['title']}\n")
+    else:
+        for i, r in enumerate(zh, 1):
+            lines.append(f"### {i}. {r.get('title', 'N/A')}")
+            if r.get("authors"):
+                lines.append(f"- 作者: {r['authors']}")
+            if r.get("date"):
+                lines.append(f"- 日期: {r['date']}")
+            if r.get("url"):
+                lines.append(f"- 链接: {r['url']}")
+            if r.get("snippet"):
+                lines.append(f"- 摘要: {r['snippet'][:200]}...")
+            lines.append("")
+    return "\n".join(lines)
+
+
+SOURCES["all"] = None  # placeholder, handled specially
+
+
 def format_results(source: str, results: list[dict]) -> str:
     """Format results as Markdown."""
     lines = [f"## {source.upper()} 搜索结果 ({len(results)} 条)\n"]
@@ -338,6 +402,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 数据源:
+  all         中英双路 (默认)              [S2 + 秘塔]
   papers      Semantic Scholar (2亿+论文)  [100req/5min]
   citation    Crossref (DOI查询/引用关系)   [无限]
   biomedical  PubMed (生物医学文献)         [3req/s]
@@ -346,11 +411,9 @@ def main():
   metaso      秘塔搜索 (中文学术/技术)       [需API Key]
 
 示例:
+  python academic_search.py all "high temperature heat pump" --limit 5
   python academic_search.py papers "solid state battery" --limit 5
   python academic_search.py citation "10.1038/s41586-021-03819-2"
-  python academic_search.py biomedical "mRNA vaccine cancer"
-  python academic_search.py preprint "large language model reasoning"
-  python academic_search.py dataset "global temperature"
   python academic_search.py metaso "固态电池 最新进展" --limit 5
         """,
     )
@@ -364,13 +427,18 @@ def main():
     args = parser.parse_args()
 
     try:
-        results = SOURCES[args.source](args.query, args.limit)
+        if args.source == "all":
+            results = search_all(args.query, args.limit)
+        else:
+            results = SOURCES[args.source](args.query, args.limit)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
+    elif args.source == "all":
+        print(format_all_results(args.query, results))
     else:
         print(format_results(args.source, results))
 
