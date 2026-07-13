@@ -24,20 +24,18 @@ author: 阿星
 
 **当用户安装本 Skill 后首次触发学术搜索时，执行以下流程：**
 
-### Step 1：引导配置
+### Step 1：引导配置（可跳过）
 
-> "为了给你最好的学术搜索体验，建议配置两个 Key——
+> "学术搜索已就绪——中英双路并行，免费开箱即用。
 >
-> 1. **Semantic Scholar API Key**（推荐）
->    - 不配也能用，但免费层仅 100 次/5 分钟，容易限流
->    - 配 Key 后速率大幅提升，稳定高速
->    - 免费申请：https://www.semanticscholar.org/product/api#api-key-form
+> 如果想获得更好的体验，可以配置两个 Key（可选，随时可补）：
 >
-> 2. **秘塔学术 API Key**（推荐）
->    - 不配也能用，但中文搜索功能暂不可用
->    - 配 Key 后解锁中文学术/技术实时搜索
+> 1. **Semantic Scholar Key**：解除 100次/5分钟限流 → 高速稳定
+>    免费申请：https://www.semanticscholar.org/product/api#api-key-form
 >
-> 你有哪个 Key？直接告诉我，我帮你配置。"
+> 2. **秘塔学术 Key**：升级中文搜索质量（更广更深）
+>
+> 现在配还是先用着？直接告诉我就行。"
 
 ### Step 2：写入 .env
 
