@@ -12,7 +12,8 @@
 | 4 | Europe PMC | `www.ebi.ac.uk/europepmc` | 无限 | 无需 | 生物医学文献（欧洲） |
 | 5 | arXiv | `export.arxiv.org` | 无限 | 无需 | 预印本搜索 |
 | 6 | Zenodo | `zenodo.org/api` | 无限 | 无需 | 研究数据集 |
-| 7 | 秘塔搜索 | `metaso.cn` | 需要 Key | **必填** | 中文学术/技术实时搜索 |
+| 7 | 秘塔搜索 | `metaso.cn` | 需要 Key | **推荐** | 中文学术/技术实时搜索 |
+| 8 | 中文学术站点 | Exa site: 过滤 | **免费** | 无需 | 知网/万方/维普/百度学术 |
 
 ---
 
@@ -278,4 +279,40 @@ curl -X POST "https://metaso.cn/api/v1/search" \
   -H "Authorization: Bearer $METASO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"q":"固态电池 2025 产业进展","n":5}'
+```
+
+---
+
+## 8. 中文学术站点搜索（papers_zh）
+
+**端点**：通过 Exa `websearch_web_search_exa` + site 过滤
+
+**速率限制**：取决于 Exa 免费额度（1,000 次/月）
+
+**认证**：无需额外 Key（使用已有 Exa 工具）
+
+**搜索方式**：
+```
+websearch_web_search_exa "关键词 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn OR site:xueshu.baidu.com OR site:arxiv.org"
+```
+
+**覆盖站点**：
+
+| 站点 | 域名 | 说明 |
+|------|------|------|
+| 知网 | cnki.net | 中国最大的学术文献数据库 |
+| 维普 | cqvip.com | 中文期刊全文数据库 |
+| 万方 | wanfangdata.com.cn | 学术期刊/学位论文/会议论文 |
+| 百度学术 | xueshu.baidu.com | 中英文学术资源聚合 |
+| arXiv | arxiv.org | 预印本（含大量中国作者论文） |
+
+**特点**：
+- **完全免费**，无需任何 API Key
+- 返回标题、作者、期刊、摘要、被引量
+- 覆盖中文学术核心期刊
+- 适合中文文献调研
+
+**搜索示例**：
+```
+websearch_web_search_exa "高温热泵 工业余热 论文 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn"
 ```

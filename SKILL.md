@@ -1,6 +1,6 @@
 ---
 name: academic-search
-description: 学术论文垂直搜索。6 大权威数据源（Semantic Scholar / Crossref / PubMed / arXiv / Zenodo / 秘塔搜索），中英双路并行。免费可用，配 S2+秘塔 Key 体验最佳。
+description: 学术论文垂直搜索。7 大权威数据源（S2/知网万方维普/Crossref/PubMed/arXiv/Zenodo/秘塔），中英双路并行。免费可用，配 Key 体验最佳。
 version: 2.0.0
 author: 阿星
 ---
@@ -77,25 +77,25 @@ Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
 **每次学术搜索，中英双路并行——这是默认行为，不是可选项。**
 
 ```
-用户 "高温热泵 学术论文"
+用户 "高温热泵论文"
         │
-        ├──→ Semantic Scholar（英文论文）  ──→ 结构化元数据 + 引用次数
-        │
-        └──→ 秘塔搜索（中文学术）        ──→ 中文论文 + 产业报告
-                    │
-                    ▼
-              合并呈现：英文学术 + 中文学术
+   ├──→ 🔬 Semantic Scholar     → 英文论文 + DOI + 引用次数
+   │
+   └──→ 🇨🇳 Exa + 中文学术站点   → 免费中文论文（知网/万方/维普/百度学术）
+                 │
+                 ▼
+            合并呈现：双语学术搜索
 ```
 
 ### 执行规则
 
 | 场景 | 行为 |
 |------|------|
-| 用户搜任意学术关键词 | **同时**调 S2 + 秘塔，并行返回 |
+| 用户搜任意学术关键词 | **同时**调 S2 + Exa 中文学术站点，并行返回 |
 | 用户明确说"英文论文" | 只调 S2 |
-| 用户明确说"中文论文" | 只调秘塔 |
-| 秘塔未配置 Key | 只调 S2，并在结果末尾提示"配置秘塔 Key 可解锁中文学术搜索" |
-| 用户搜 DOI/PMID 等精确标识符 | 只调 Crossref/PubMed（无需双路） |
+| 用户明确说"中文论文" | 只调 Exa 中文学术站点 |
+| 已配秘塔 Key | 中文路优先用秘塔（质量更高），降级到 Exa |
+| 未配秘塔 Key | 中文路用 Exa 中文学术站点（免费） |
 
 ### 输出格式
 
@@ -104,9 +104,9 @@ Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
 ### 1. [标题]
 - 期刊 / 引用次数 / DOI ...
 
-## 🇨🇳 中文学术结果 (秘塔搜索, N 条)
+## 🇨🇳 中文学术结果 (papers_zh, N 条)
 ### 1. [标题]
-- 来源 / 摘要 ...
+- 来源 / 摘要 / 链接 ...
 ```
 
 ---
@@ -121,16 +121,17 @@ Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
 - "arXiv 预印本"、"最新 preprint"
 - "研究数据集"、"dataset"
 
-## 6 个子域 + 对应 API
+## 7 大搜索源
 
-| 子域 | API | 端点 | 用途 |
-|------|-----|------|------|
-| **papers** | Semantic Scholar | `api.semanticscholar.org` | 论文语义搜索（2 亿+ 论文） |
-| **citation** | Crossref | `api.crossref.org` | DOI 元数据 / 引用关系 |
-| **biomedical** | PubMed + Europe PMC | `eutils.ncbi.nlm.nih.gov` / `ebi.ac.uk` | 生物医学文献 |
-| **preprint** | arXiv | `export.arxiv.org` | 预印本搜索 |
-| **dataset** | Zenodo | `zenodo.org/api` | 研究数据集 |
-| **metaso** | 秘塔搜索 | `metaso.cn/api/v1/search` | 中文学术/技术实时搜索 |
+| 源 | 后端 | Key | 用途 |
+|------|------|:--:|------|
+| **papers** | Semantic Scholar | 推荐 | 英文学术论文（2 亿+） |
+| **papers_zh** | Exa + 中文学术站点 | 无需 | **免费中文论文**（知网/万方/维普/百度学术） |
+| **citation** | Crossref | 无需 | DOI 元数据 + 引用关系 |
+| **biomedical** | PubMed + Europe PMC | 无需 | 生物医学文献 |
+| **preprint** | arXiv | 无需 | 最新预印本 |
+| **dataset** | Zenodo | 无需 | 研究数据集 |
+| **metaso** | 秘塔搜索 | 推荐 | 中文学术/技术实时搜索 |
 
 完整 API 文档见 `references/apis.md`。
 
@@ -153,6 +154,21 @@ curl "https://api.semanticscholar.org/graph/v1/paper/search?query=solid+state+ba
 ```
 
 **速率限制**：100req/5min（免费），有 Key 更高
+
+### 免费中文论文搜索（Exa + 中文学术站点）
+
+使用 `websearch_web_search_exa` + 中文学术站点过滤，免费且无需任何 Key：
+
+```
+site:cnki.net OR site:xueshu.baidu.com OR site:wanfangdata.com.cn OR site:cqvip.com OR site:arxiv.org
+```
+
+**Agent 调用**：
+```
+websearch_web_search_exa "高温热泵 工业 论文 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn OR site:xueshu.baidu.com OR site:arxiv.org"
+```
+
+覆盖知网、万方、维普、百度学术、arXiv。返回标题、作者、期刊、摘要、引用量。
 
 ### DOI 精准查询（Crossref）
 
