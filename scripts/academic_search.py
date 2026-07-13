@@ -26,10 +26,8 @@ if sys.stdout.encoding != "utf-8":
 if sys.stderr.encoding != "utf-8":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-# Create unverified SSL context for environments with cert issues
+# SSL context: default first, fall back to unverified on error
 SSL_CONTEXT = ssl.create_default_context()
-SSL_CONTEXT.check_hostname = False
-SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 # Load API keys from .env file
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -52,13 +50,23 @@ METASO_API_KEY = os.environ.get("METASO_API_KEY", "")
 
 
 def fetch_json(url: str, timeout: int = 15, headers: Optional[dict] = None) -> dict:
-    """Fetch URL and parse JSON response."""
+    """Fetch URL and parse JSON response. Falls back to unverified SSL on error."""
     req_headers = {"User-Agent": "AcademicSearch/2.0"}
     if headers:
         req_headers.update(headers)
-    req = urllib.request.Request(url, headers=req_headers)
-    with urllib.request.urlopen(req, timeout=timeout, context=SSL_CONTEXT) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+
+    def _do_fetch(ctx):
+        req = urllib.request.Request(url, headers=req_headers)
+        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    try:
+        return _do_fetch(SSL_CONTEXT)
+    except (ssl.SSLError, OSError, ConnectionError):
+        fallback_ctx = ssl.create_default_context()
+        fallback_ctx.check_hostname = False
+        fallback_ctx.verify_mode = ssl.CERT_NONE
+        return _do_fetch(fallback_ctx)
 
 
 def fetch_xml(url: str, timeout: int = 15) -> str:
