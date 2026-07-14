@@ -47,6 +47,7 @@ for env_path in [os.path.join(SCRIPT_DIR, ".env"), os.path.join(SKILL_DIR, ".env
 
 S2_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "")
 METASO_API_KEY = os.environ.get("METASO_API_KEY", "")
+OPENALEX_API_KEY = os.environ.get("OPENALEX_API_KEY", "")
 
 
 def fetch_json(url: str, timeout: int = 15, headers: Optional[dict] = None) -> dict:
@@ -299,8 +300,53 @@ def search_metaso(query: str, limit: int = 10) -> list[dict]:
 
 # ─── Output ─────────────────────────────────────────────────────
 
+def search_openalex(query: str, limit: int = 10) -> list[dict]:
+    """Search via OpenAlex - largest open scholarly database (250M+ works)."""
+    params = urllib.parse.urlencode({
+        "search": query,
+        "per_page": limit,
+        "sort": "cited_by_count:desc",
+    })
+    url = f"https://api.openalex.org/works?{params}"
+    headers = {}
+    if OPENALEX_API_KEY:
+        headers["User-Agent"] = f"mailto:{OPENALEX_API_KEY}"
+    else:
+        headers["User-Agent"] = "mailto:academic-search@example.com"
+    data = fetch_json(url, headers=headers)
+    results = []
+    for work in data.get("results", []):
+        try:
+            authors_list = []
+            for au in work.get("authorships", [])[:3]:
+                auth = au.get("author")
+                if auth and auth.get("display_name"):
+                    authors_list.append(auth["display_name"])
+            authors = ", ".join(authors_list)
+            if len(work.get("authorships", [])) > 3:
+                authors += " et al."
+
+            loc = work.get("primary_location") or {}
+            src = loc.get("source") or {}
+
+            results.append({
+                "title": work.get("title", "N/A") or "N/A",
+                "authors": authors,
+                "year": ((work.get("publication_date") or "")[:4]) or "",
+                "journal": src.get("display_name", "") or "",
+                "doi": (work.get("doi") or "").replace("https://doi.org/", ""),
+                "citations": work.get("cited_by_count", 0),
+                "type": work.get("type", "") or "",
+                "oa": (work.get("open_access") or {}).get("is_oa", False),
+            })
+        except Exception:
+            continue
+    return results
+
+
 SOURCES = {
     "papers": search_semantic_scholar,
+    "openalex": search_openalex,
     "citation": search_crossref,
     "biomedical": search_pubmed,
     "preprint": search_arxiv,

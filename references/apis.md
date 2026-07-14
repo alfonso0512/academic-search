@@ -316,3 +316,27 @@ websearch_web_search_exa "关键词 site:cnki.net OR site:cqvip.com OR site:wanf
 ```
 websearch_web_search_exa "高温热泵 工业余热 论文 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn"
 ```
+
+---
+
+## 9. OpenAlex API
+
+**端点**：`https://api.openalex.org/works`
+
+**速率限制**：免费层慷慨，配邮件 Key 可入 polite pool
+
+**数据规模**：250M+ 作品（论文/书籍/学位论文/数据集），100M 作者，2.5B 引用
+
+**搜索**：
+```
+GET https://api.openalex.org/works?search={keywords}&per_page={n}&sort=cited_by_count:desc
+```
+
+**可用 filters**：`language`, `type`, `is_oa`, `publication_year`, `authorships.institutions.id`
+
+**搜索示例**：
+```bash
+curl "https://api.openalex.org/works?search=high+temperature+heat+pump&per_page=5&sort=cited_by_count:desc"
+```
+
+**特点**：最大开放学术库（CC0）、全学科、⅓ 非英语、被莱顿排名采用、论文+书籍+学位论文混合索引

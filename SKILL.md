@@ -1,6 +1,6 @@
 ---
 name: academic-search
-description: 学术论文垂直搜索。7 大权威数据源（S2/知网万方维普/Crossref/PubMed/arXiv/Zenodo/秘塔），中英双路并行。免费可用，配 Key 体验最佳。
+description: 学术论文垂直搜索。8 大权威数据源（S2/OpenAlex/知网万方维普/Crossref/PubMed/arXiv/Zenodo/秘塔），中英双路并行。免费可用，配 Key 体验最佳。
 version: 2.0.0
 author: 阿星
 ---
@@ -28,12 +28,11 @@ author: 阿星
 
 > "学术搜索已就绪——中英双路并行，免费开箱即用。
 >
-> 如果想获得更好的体验，可以配置两个 Key（可选，随时可补）：
+> 如果想获得更好的体验，可以配置 Key（可选，随时可补）：
 >
 > 1. **Semantic Scholar Key**：解除 100次/5分钟限流 → 高速稳定
->    免费申请：https://www.semanticscholar.org/product/api#api-key-form
->
 > 2. **秘塔学术 Key**：升级中文搜索质量（更广更深）
+> 3. **OpenAlex Key**：解锁最大开放学术库（2.5亿+，全学科）
 >
 > 现在配还是先用着？直接告诉我就行。"
 
@@ -119,12 +118,13 @@ Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
 - "arXiv 预印本"、"最新 preprint"
 - "研究数据集"、"dataset"
 
-## 7 大搜索源
+## 8 大搜索源
 
 | 源 | 后端 | Key | 用途 |
 |------|------|:--:|------|
 | **papers** | Semantic Scholar | 推荐 | 英文学术论文（2 亿+） |
-| **papers_zh** | Exa + 中文学术站点 | 无需 | **免费中文论文**（知网/万方/维普/百度学术） |
+| **openalex** | OpenAlex | 可选 | 最大开放学术库（2.5 亿+，全学科） |
+| **papers_zh** | Exa + 中文学术站点 | 无需 | 免费中文论文（知网/万方/维普/百度学术） |
 | **citation** | Crossref | 无需 | DOI 元数据 + 引用关系 |
 | **biomedical** | PubMed + Europe PMC | 无需 | 生物医学文献 |
 | **preprint** | arXiv | 无需 | 最新预印本 |
