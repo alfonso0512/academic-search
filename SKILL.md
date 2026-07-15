@@ -110,9 +110,17 @@ Semantic Scholar: [配 Key ✓  高速模式] / [免费层 100req/5min]
                       │         ↓ 故障
                       │       papers_zh（降级）
                       │
-                      └── 否 → papers_zh（Exa + 知网/万方/维普）
-                                ↓ Exa 不可用
-                               仅返回英文结果 + 提示
+                      └── 否 → papers_zh（多后端自动降级）
+                                │
+                                ├── Exa（主）
+                                │     ↓ 不可用
+                                ├── Brave Search
+                                │     ↓ 不可用
+                                ├── web_search
+                                │     ↓ 不可用
+                                └── OpenAlex(lang:zh)（兜底）
+                                      ↓ 不可用
+                                     仅返回英文结果 + 提示
 ```
 
 | 降级路径 | 触发条件 | 效果 |
@@ -181,20 +189,31 @@ curl "https://api.semanticscholar.org/graph/v1/paper/search?query=solid+state+ba
 
 **速率限制**：100req/5min（免费），有 Key 更高
 
-### 免费中文论文搜索（Exa + 中文学术站点）
+### 免费中文论文搜索（papers_zh）
 
-使用 `websearch_web_search_exa` + 中文学术站点过滤，免费且无需任何 Key：
+后端自动降级：**Exa → Brave → web_search → OpenAlex(lang:zh)**
 
 ```
-site:cnki.net OR site:xueshu.baidu.com OR site:wanfangdata.com.cn OR site:cqvip.com OR site:arxiv.org
+site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn OR site:xueshu.baidu.com OR site:arxiv.org
 ```
 
-**Agent 调用**：
-```
-websearch_web_search_exa "高温热泵 工业 论文 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn OR site:xueshu.baidu.com OR site:arxiv.org"
+**各后端示例**：
+
+```bash
+# Exa（最佳）
+web_search_exa "高温热泵 论文 site:cnki.net OR site:cqvip.com OR site:wanfangdata.com.cn"
+
+# Brave Search
+brave_web_search "高温热泵 论文 site:cnki.net OR site:cqvip.com"
+
+# 通用搜索
+web_search "高温热泵 论文 site:cnki.net OR site:cqvip.com"
+
+# OpenAlex（最终兜底，中文相关性弱）
+curl "https://api.openalex.org/works?search=高温热泵&filter=language:zh"
 ```
 
-覆盖知网、万方、维普、百度学术、arXiv。返回标题、作者、期刊、摘要、引用量。
+覆盖知网、万方、维普、百度学术、arXiv。不依赖任何特定工具。
 
 ### DOI 精准查询（Crossref）
 
