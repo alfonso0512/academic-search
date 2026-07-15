@@ -84,7 +84,7 @@ def search_semantic_scholar(query: str, limit: int = 10) -> list[dict]:
     params = urllib.parse.urlencode({
         "query": query,
         "limit": limit,
-        "fields": "title,authors,year,citationCount,journal,externalIds"
+        "fields": "title,authors,year,citationCount,journal,externalIds,openAccessPdf"
     })
     url = f"https://api.semanticscholar.org/graph/v1/paper/search?{params}"
     headers = {}
@@ -103,6 +103,7 @@ def search_semantic_scholar(query: str, limit: int = 10) -> list[dict]:
             "citations": paper.get("citationCount", 0),
             "journal": paper.get("journal", {}).get("name", "") if paper.get("journal") else "",
             "doi": paper.get("externalIds", {}).get("DOI", ""),
+            "pdf_url": (paper.get("openAccessPdf") or {}).get("url", ""),
         })
     return results
 
@@ -450,6 +451,35 @@ def format_results(source: str, results: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def download_pdf(url: str, filename: str, output_dir: str = ".") -> str:
+    """Download PDF from URL and save to output_dir."""
+    os.makedirs(output_dir, exist_ok=True)
+    filepath = os.path.join(output_dir, filename)
+    headers_dict = {"User-Agent": "AcademicSearch/2.0"}
+    req = urllib.request.Request(url, headers=headers_dict)
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=SSL_CONTEXT) as resp:
+            content = resp.read()
+            with open(filepath, "wb") as f:
+                f.write(content)
+            size_mb = len(content) / (1024 * 1024)
+            return f"{filepath} ({size_mb:.1f} MB)"
+    except Exception as e:
+        try:
+            fallback_ctx = ssl.create_default_context()
+            fallback_ctx.check_hostname = False
+            fallback_ctx.verify_mode = ssl.CERT_NONE
+            req2 = urllib.request.Request(url, headers=headers_dict)
+            with urllib.request.urlopen(req2, timeout=30, context=fallback_ctx) as resp:
+                content = resp.read()
+                with open(filepath, "wb") as f:
+                    f.write(content)
+                size_mb = len(content) / (1024 * 1024)
+                return f"{filepath} ({size_mb:.1f} MB)"
+        except Exception as e2:
+            return f"Failed: {e2}"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Academic Search CLI - 直连学术 API 免费层",
@@ -478,6 +508,10 @@ def main():
                         help="返回数量 (默认10)")
     parser.add_argument("--json", action="store_true",
                         help="输出原始 JSON")
+    parser.add_argument("--pdf", action="store_true",
+                        help="下载 OA PDF 原文（仅 papers / preprint 源）")
+    parser.add_argument("--output", "-o", default=".",
+                        help="PDF 下载目录 (默认: 当前目录)")
     args = parser.parse_args()
 
     try:
@@ -489,7 +523,28 @@ def main():
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    if args.json:
+    if args.pdf:
+        count = 0
+        for i, r in enumerate(results if isinstance(results, list) else results.get("papers", [])):
+            pdf_url = r.get("pdf_url", "")
+            arxiv_id = r.get("arxiv_id", "")
+            if arxiv_id:
+                # Try without version first, then with
+                clean_id = arxiv_id.split("v")[0]
+                url = f"https://arxiv.org/pdf/{clean_id}.pdf"
+            else:
+                url = ""
+            if url:
+                safe_title = "".join(c if c.isalnum() or c in " _-" else "_" for c in r.get("title", f"paper_{i}")[:60])
+                filename = f"{safe_title.strip()}.pdf"
+                result = download_pdf(url, filename, args.output)
+                print(f"[{i+1}] {result}")
+                count += 1
+            else:
+                print(f"[{i+1}] No OA PDF available: {r.get('title', 'N/A')[:60]}...")
+        if count == 0:
+            print("No downloadable PDFs found. Only Open Access papers are supported.")
+    elif args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
     elif args.source == "all":
         print(format_all_results(args.query, results))

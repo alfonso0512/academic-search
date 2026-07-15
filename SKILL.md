@@ -300,6 +300,25 @@ curl "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=
 curl "http://export.arxiv.org/api/query?search_query=all:mixture+of+experts+language+model&start=0&max_results=5"
 ```
 
+## PDF 原文下载
+
+支持下载 **Open Access** 论文 PDF：
+
+| 源 | PDF 支持 | 说明 |
+|------|:--:|------|
+| papers (S2) | ✅ | `openAccessPdf` 字段，OA 论文自动获取 |
+| preprint (arXiv) | ✅ | `arxiv.org/pdf/{id}.pdf`，全部免费 |
+| biomedical (PubMed) | ⚠️ | 仅 PMC 免费全文 |
+| 其他源 | ❌ | 仅元数据，无 PDF |
+
+**CLI 下载**：
+```bash
+python academic_search.py papers "solid state battery" --limit 3 --pdf -o ./downloads
+python academic_search.py preprint "transformer attention" --pdf -o ./downloads
+```
+
+**Agent 用法**：搜索结果中有 `pdf_url` 或 `arxiv_id` 时，用 `webfetch` / `curl` 下载。
+
 ## 扩展指南
 
 添加新 API 只需两步：
